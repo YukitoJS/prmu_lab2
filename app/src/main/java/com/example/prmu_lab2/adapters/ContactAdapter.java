@@ -17,7 +17,7 @@ import java.util.List;
 
 public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHolder> {
 
-    private List<Contact> contact = new ArrayList<>();
+    private List<Contact> contacts = new ArrayList<>();
 
     @NonNull
     @Override
@@ -29,26 +29,26 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Contact item = contact.get(position);
+        Contact item = contacts.get(position);
 
         holder.textViewContactName.setText(item.getContactName());
-        holder.textViewImportance.setText(item.getImportanceContact());
+        holder.textViewImportance.setText(String.valueOf(item.getImportanceContact()));
         holder.textViewDate.setText(item.getFormattedDate());
     }
 
     @Override
     public int getItemCount() {
-        return contact.size();
+        return contacts.size();
     }
 
     public void setContact(List<Contact> items) {
-        this.contact.clear();
-        this.contact.addAll(items);
+        this.contacts.clear();
+        this.contacts.addAll(items);
         notifyDataSetChanged();
     }
 
     public void clearItems() {
-        this.contact.clear();
+        this.contacts.clear();
         notifyDataSetChanged();
     }
 
