@@ -15,43 +15,51 @@ import com.example.prmu_lab2.models.Contact;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactViewHolder> {
-    private List<Contact> contacts = new ArrayList<>();
+public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHolder> {
+
+    private List<Contact> contact = new ArrayList<>();
 
     @NonNull
     @Override
-    public ContactViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_contact, parent, false);
-        return new ContactViewHolder(view);
+        return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ContactViewHolder holder, int position) {
-        Contact contact = contacts.get(position);
-        holder.tvTitle.setText(contact.getTitle());
-        holder.tvDateLastContact.setText(String.format("$%.2f", contact.getDateLastContact()));
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        Contact item = contact.get(position);
+
+        holder.textViewContactName.setText(item.getContactName());
+        holder.textViewImportance.setText(item.getImportanceContact());
+        holder.textViewDate.setText(item.getFormattedDate());
     }
 
     @Override
     public int getItemCount() {
-        return contacts.size();
+        return contact.size();
     }
 
-    public void setContacts(List<Contact> contacts) {
-        this.contacts = contacts;
+    public void setContact(List<Contact> items) {
+        this.contact.clear();
+        this.contact.addAll(items);
         notifyDataSetChanged();
     }
 
-    public static class ContactViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvDateLastContact;
-        ImageView ivThumbnail;
+    public void clearItems() {
+        this.contact.clear();
+        notifyDataSetChanged();
+    }
 
-        public ContactViewHolder(@NonNull View itemView) {
+    static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView textViewContactName, textViewImportance, textViewDate;
+
+        ViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvTitle = itemView.findViewById(R.id.tvTitle);
-            tvDateLastContact = itemView.findViewById(R.id.tvDateLastContact);
-            ivThumbnail = itemView.findViewById(R.id.ivThunbnail);
+            textViewContactName = itemView.findViewById(R.id.textViewContactName);
+            textViewImportance = itemView.findViewById(R.id.textViewImportance);
+            textViewDate = itemView.findViewById(R.id.textViewDate);
         }
     }
 }
