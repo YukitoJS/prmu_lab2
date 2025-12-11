@@ -67,6 +67,8 @@ public class MainActivity extends AppCompatActivity {
 
         initViews();
         setupRecyclerView();
+
+        loadContacts();
     }
 
     private void initViews() {
