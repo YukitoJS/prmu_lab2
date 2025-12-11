@@ -3,19 +3,19 @@ package com.example.prmu_lab2.models;
 public class Contact {
     private int id;
     private String title;
-    private double price;
+    private double dateLastContact;
     private String thumbnail;
     private String description;
 
     public Contact() {
     }
 
-    public double getPrice() {
-        return price;
+    public double getDateLastContact() {
+        return dateLastContact;
     }
 
-    public void setPrice(double price) {
-        this.price = price;
+    public void setDateLastContact(double dateLastContact) {
+        this.dateLastContact = dateLastContact;
     }
 
     public int getId() {

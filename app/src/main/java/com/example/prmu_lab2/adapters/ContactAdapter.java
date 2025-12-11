@@ -30,7 +30,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
     public void onBindViewHolder(@NonNull ContactViewHolder holder, int position) {
         Contact contact = contacts.get(position);
         holder.tvTitle.setText(contact.getTitle());
-        holder.tvPrice.setText(String.format("$%.2f", contact.getPrice()));
+        holder.tvDateLastContact.setText(String.format("$%.2f", contact.getDateLastContact()));
     }
 
     @Override
@@ -44,13 +44,13 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ContactV
     }
 
     public static class ContactViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvPrice;
+        TextView tvTitle, tvDateLastContact;
         ImageView ivThumbnail;
 
         public ContactViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTitle = itemView.findViewById(R.id.tvTitle);
-            tvPrice = itemView.findViewById(R.id.tvPrice);
+            tvDateLastContact = itemView.findViewById(R.id.tvDateLastContact);
             ivThumbnail = itemView.findViewById(R.id.ivThunbnail);
         }
     }
