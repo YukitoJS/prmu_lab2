@@ -13,7 +13,8 @@ public class Contact {
     // Конструкторы
     public Contact() {}
 
-    public Contact(String contactName, int importanceContact, String lastContactDate) {
+    public Contact(String id, String contactName, int importanceContact, String lastContactDate) {
+        this.id = id;
         this.contactName = contactName;
         this.importanceContact = importanceContact;
         this.lastContactDate = lastContactDate;
