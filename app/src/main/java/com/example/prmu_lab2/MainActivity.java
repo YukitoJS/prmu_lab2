@@ -40,7 +40,8 @@ import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MainActivity extends AppCompatActivity implements ContactAdapter.OnItemClickListener,
+public class MainActivity extends AppCompatActivity
+        implements ContactAdapter.OnItemClickListener,
         ContactAdapter.OnDeleteClickListener {
 
     private final ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
@@ -178,7 +179,7 @@ public class MainActivity extends AppCompatActivity implements ContactAdapter.On
 
                     if (responseCode == 201) {
                         // Просто перезагружаем список вместо парсинга ответа
-                        loadContactItems();
+                        loadContacts();
                         Toast.makeText(this, "Предмет добавлен", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(this, "Ошибка: " + responseCode, Toast.LENGTH_SHORT).show();
@@ -196,7 +197,121 @@ public class MainActivity extends AppCompatActivity implements ContactAdapter.On
         });
     }
 
+    // === МЕТОД ДЛЯ РЕДАКТИРОВАНИЯ ПРЕДМЕТА ===
+    @Override
+    public void onItemClick(Contact item) {
+        showEditDialog(item);
+    }
 
+    private void showEditDialog(Contact item) {
+        // Создаем поля ввода с предзаполненными значениями
+        final EditText etItemName = new EditText(this);
+        etItemName.setHint("Название предмета");
+        etItemName.setText(item.getContactName());
+
+        final EditText etCost = new EditText(this);
+        etCost.setHint("Ориентировочная стоимость");
+        etCost.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        etCost.setText(String.valueOf(item.getImportanceContact()));
+
+        final EditText etDate = new EditText(this);
+        etDate.setHint("Дата покупки (ГГГГ-ММ-ДД)");
+        etDate.setText(item.getLastContactDate());
+
+        // Создаем контейнер для полей
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        int padding = (int) (16 * getResources().getDisplayMetrics().density);
+        container.setPadding(padding, padding, padding, padding);
+
+        container.addView(etItemName);
+        container.addView(etCost);
+        container.addView(etDate);
+
+        // Создаем диалог
+        new AlertDialog.Builder(this)
+                .setTitle("Редактировать предмет")
+                .setView(container)
+                .setPositiveButton("Сохранить", (dialog, which) -> {
+                    String itemName = etItemName.getText().toString().trim();
+                    String costStr = etCost.getText().toString().trim();
+                    String date = etDate.getText().toString().trim();
+
+                    if (itemName.isEmpty() || costStr.isEmpty() || date.isEmpty()) {
+                        Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    try {
+                        double cost = Double.parseDouble(costStr);
+                        updateContactItem(item.getId(), itemName, cost, date);
+                    } catch (NumberFormatException e) {
+                        Toast.makeText(this, "Введите корректную стоимость", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Отмена", null)
+                .show();
+    }
+
+    private void updateContactItem(String itemId, String itemName, double cost, String date) {
+        showLoading(true);
+
+        networkExecutor.execute(() -> {
+            try {
+                URL url = new URL(SupabaseConfig.TABLE_URL + "?id=eq." + itemId);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+                // Используем PATCH для частичного обновления
+                connection.setRequestMethod("PATCH");
+                connection.setRequestProperty(SupabaseConfig.HEADER_API_KEY, SupabaseConfig.SUPABASE_ANON_KEY);
+                connection.setRequestProperty(SupabaseConfig.HEADER_AUTHORIZATION, "Bearer " + accessToken);
+                connection.setRequestProperty(SupabaseConfig.HEADER_CONTENT_TYPE, SupabaseConfig.CONTENT_TYPE_JSON);
+                connection.setDoOutput(true);
+
+                // Создаем JSON только с измененными полями
+                JSONObject jsonBody = new JSONObject();
+                jsonBody.put("item_name", itemName);
+                jsonBody.put("estimated_cost", cost);
+                jsonBody.put("purchase_date", date);
+
+                // Отправляем данные
+                OutputStream outputStream = connection.getOutputStream();
+                outputStream.write(jsonBody.toString().getBytes());
+                outputStream.flush();
+                outputStream.close();
+
+                int responseCode = connection.getResponseCode();
+
+                mainHandler.post(() -> {
+                    showLoading(false);
+
+                    if (responseCode == 204) {  // 204 No Content
+                        // Обновляем элемент в адаптере
+                        Contact updatedItem = new Contact();
+                        updatedItem.setId(itemId);
+                        updatedItem.setUserId(userId);
+                        updatedItem.setContactName(itemName);
+                        updatedItem.setImportanceContact(double);
+                        updatedItem.setLastContactDate(date);
+
+                        adapter.updateItem(updatedItem);
+
+                        Toast.makeText(this, "Предмет обновлен", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "Ошибка обновления: " + responseCode, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                connection.disconnect();
+
+            } catch (Exception e) {
+                mainHandler.post(() -> {
+                    showLoading(false);
+                    Toast.makeText(this, "Сетевая ошибка: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
 
     private void loadContacts() {
         showLoading(true);

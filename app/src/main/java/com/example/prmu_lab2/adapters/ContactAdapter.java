@@ -96,6 +96,15 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
         this.contacts.clear();
         notifyDataSetChanged();
     }
+    public void updateItem(Contact updatedItem) {
+        for (int i = 0; i < contacts.size(); i++) {
+            if (contacts.get(i).getId().equals(updatedItem.getId())) {
+                contacts.set(i, updatedItem);
+                notifyItemChanged(i);
+                break;
+            }
+        }
+    }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView textViewContactName, textViewImportance, textViewDate;
