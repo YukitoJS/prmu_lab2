@@ -67,19 +67,25 @@ public class MainActivity extends AppCompatActivity
             return insets;
         });
 
-        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
-        accessToken = prefs.getString("access_token", null);
-
-        if (accessToken == null) {
-            startActivity(new Intent(this, LoginActivity.class));
-            finish();
-            return; }
+        loadSessionData();
 
         initViews();
         setupRecyclerView();
         setupClickListeners();
 
         loadContacts();
+    }
+
+    private void loadSessionData() {
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        accessToken = prefs.getString("access_token", null);
+        userId = prefs.getString("user_id", null);
+
+        if (accessToken == null || userId == null) {
+            // Если нет данных сессии, переходим на экран входа
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+        }
     }
 
     private void initViews() {
@@ -433,6 +439,7 @@ public class MainActivity extends AppCompatActivity
 
                 Contact item = new Contact();
                 item.setId(jsonObject.optString("id"));
+                item.setUserId(jsonObject.optString("user_id"));  // Добавляем user_id
                 item.setContactName(jsonObject.optString("contact_name", "Без названия"));
                 item.setImportanceContact(jsonObject.optInt("importance_contact", 0));
                 item.setLastContactDate(jsonObject.optString("last_contact_date", ""));

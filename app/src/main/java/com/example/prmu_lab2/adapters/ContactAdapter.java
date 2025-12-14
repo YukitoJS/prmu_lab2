@@ -96,6 +96,10 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
         this.contacts.clear();
         notifyDataSetChanged();
     }
+    public void addItem(Contact item) {
+        this.contacts.add(item);
+        notifyItemInserted(this.contacts.size() - 1);
+    }
     public void updateItem(Contact updatedItem) {
         for (int i = 0; i < contacts.size(); i++) {
             if (contacts.get(i).getId().equals(updatedItem.getId())) {
@@ -125,6 +129,7 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
             textViewContactName = itemView.findViewById(R.id.textViewContactName);
             textViewImportance = itemView.findViewById(R.id.textViewImportance);
             textViewDate = itemView.findViewById(R.id.textViewDate);
+            buttonDelete = itemView.findViewById(R.id.buttonDelete);
         }
     }
 }
