@@ -97,6 +97,9 @@ public class MainActivity extends AppCompatActivity
 
     private void setupRecyclerView() {
         adapter = new ContactAdapter();
+        adapter.setOnItemClickListener(this);
+        adapter.setOnDeleteClickListener(this);
+
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
     }
