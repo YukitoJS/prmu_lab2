@@ -6,6 +6,7 @@ import java.util.Locale;
 
 public class Contact {
     private String id;
+    private String userId;
     private String contactName;
     private int importanceContact;
     private String lastContactDate;
@@ -22,6 +23,8 @@ public class Contact {
     // Геттеры и сеттеры
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
     public String getContactName() { return contactName; }
     public void setContactName(String contactName) { this.contactName = contactName; }
