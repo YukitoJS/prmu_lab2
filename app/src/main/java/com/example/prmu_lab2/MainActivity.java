@@ -5,12 +5,16 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.InputType;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -21,11 +25,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.prmu_lab2.adapters.ContactAdapter;
 import com.example.prmu_lab2.models.Contact;
 import com.example.prmu_lab2.network.SupabaseConfig;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -34,7 +40,8 @@ import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements ContactAdapter.OnItemClickListener,
+        ContactAdapter.OnDeleteClickListener {
 
     private final ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
@@ -44,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private TextView textViewEmpty;
     private ContactAdapter adapter;
+    private FloatingActionButton fabAdd;
 
 
 
@@ -68,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
 
         initViews();
         setupRecyclerView();
+        setupClickListeners();
 
         loadContacts();
     }
@@ -76,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         progressBar = findViewById(R.id.progressBar);
         textViewEmpty = findViewById(R.id.textViewEmpty);
+        fabAdd = findViewById(R.id.fabAdd);
     }
 
     private void setupRecyclerView() {
@@ -83,6 +93,110 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setAdapter(adapter);
     }
+    private void setupClickListeners() {
+        fabAdd.setOnClickListener(v -> showAddDialog());
+    }
+
+    // === МЕТОД ДЛЯ ДОБАВЛЕНИЯ ПРЕДМЕТА ===
+    private void showAddDialog() {
+        // Создаем поля ввода
+        final EditText etItemName = new EditText(this);
+        etItemName.setHint("Название предмета");
+
+        final EditText etCost = new EditText(this);
+        etCost.setHint("Ориентировочная стоимость");
+        etCost.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+
+        final EditText etDate = new EditText(this);
+        etDate.setHint("Дата покупки (ГГГГ-ММ-ДД)");
+        etDate.setText("2023-12-01");  // Пример для удобства
+
+        // Создаем контейнер для полей
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        int padding = (int) (16 * getResources().getDisplayMetrics().density);
+        container.setPadding(padding, padding, padding, padding);
+
+        container.addView(etItemName);
+        container.addView(etCost);
+        container.addView(etDate);
+
+        // Создаем диалог
+        new AlertDialog.Builder(this)
+                .setTitle("Добавить предмет в инвентарь")
+                .setView(container)
+                .setPositiveButton("Добавить", (dialog, which) -> {
+                    String itemName = etItemName.getText().toString().trim();
+                    String costStr = etCost.getText().toString().trim();
+                    String date = etDate.getText().toString().trim();
+
+                    if (itemName.isEmpty() || costStr.isEmpty() || date.isEmpty()) {
+                        Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    try {
+                        double cost = Double.parseDouble(costStr);
+                        addContactItem(itemName, cost, date);
+                    } catch (NumberFormatException e) {
+                        Toast.makeText(this, "Введите корректную стоимость", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .setNegativeButton("Отмена", null)
+                .show();
+    }
+
+    private void addContactItem(String itemName, double cost, String date) {
+        showLoading(true);
+
+        networkExecutor.execute(() -> {
+            try {
+                URL url = new URL(SupabaseConfig.TABLE_URL);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+                connection.setRequestMethod("POST");
+                connection.setRequestProperty("apikey", SupabaseConfig.SUPABASE_ANON_KEY);
+                connection.setRequestProperty("Authorization", "Bearer " + accessToken);
+                connection.setRequestProperty("Content-Type", "application/json");
+                connection.setDoOutput(true);
+
+                JSONObject jsonBody = new JSONObject();
+                jsonBody.put("item_name", itemName);
+                jsonBody.put("estimated_cost", cost);
+                jsonBody.put("purchase_date", date);
+                jsonBody.put("user_id", userId);
+
+                OutputStream outputStream = connection.getOutputStream();
+                outputStream.write(jsonBody.toString().getBytes());
+                outputStream.flush();
+                outputStream.close();
+
+                int responseCode = connection.getResponseCode();
+
+                mainHandler.post(() -> {
+                    showLoading(false);
+
+                    if (responseCode == 201) {
+                        // Просто перезагружаем список вместо парсинга ответа
+                        loadContactItems();
+                        Toast.makeText(this, "Предмет добавлен", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "Ошибка: " + responseCode, Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                connection.disconnect();
+
+            } catch (Exception e) {
+                mainHandler.post(() -> {
+                    showLoading(false);
+                    Toast.makeText(this, "Ошибка: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
+
+
 
     private void loadContacts() {
         showLoading(true);
