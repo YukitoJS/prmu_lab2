@@ -3,6 +3,7 @@ package com.example.prmu_lab2.adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -19,6 +20,25 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
 
     private List<Contact> contacts = new ArrayList<>();
 
+    private OnItemClickListener itemClickListener;
+    private OnDeleteClickListener deleteClickListener;
+
+    public interface OnItemClickListener {
+        void onItemClick(Contact item);
+    }
+
+    public interface OnDeleteClickListener {
+        void onDeleteClick(String itemId, String itemName);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.itemClickListener = listener;
+    }
+
+    public void setOnDeleteClickListener(OnDeleteClickListener listener) {
+        this.deleteClickListener = listener;
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -34,6 +54,31 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
         holder.textViewContactName.setText(item.getContactName());
         holder.textViewImportance.setText(String.valueOf(item.getImportanceContact()));
         holder.textViewDate.setText(item.getFormattedDate());
+
+        holder.currentItemId = item.getId();
+
+        // Обработчик клика на весь элемент (для редактирования)
+        holder.itemView.setOnClickListener(v -> {
+            if (itemClickListener != null) {
+                itemClickListener.onItemClick(item);
+            }
+        });
+
+        // Обработчик долгого нажатия (альтернатива для редактирования)
+        holder.itemView.setOnLongClickListener(v -> {
+            if (itemClickListener != null) {
+                itemClickListener.onItemClick(item);
+                return true;
+            }
+            return false;
+        });
+
+        // Обработчик кнопки удаления
+        holder.buttonDelete.setOnClickListener(v -> {
+            if (deleteClickListener != null) {
+                deleteClickListener.onDeleteClick(item.getId(), item.getContactName());
+            }
+        });
     }
 
     @Override
@@ -54,6 +99,8 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView textViewContactName, textViewImportance, textViewDate;
+        ImageButton buttonDelete;
+        String currentItemId;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);

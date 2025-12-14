@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private final ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private String accessToken;
+    private String userId;
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
     private TextView textViewEmpty;

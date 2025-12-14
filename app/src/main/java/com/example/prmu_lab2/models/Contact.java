@@ -6,6 +6,7 @@ import java.util.Locale;
 
 public class Contact {
     private String id;
+    private String userId;
     private String contactName;
     private int importanceContact;
     private String lastContactDate;
@@ -13,8 +14,7 @@ public class Contact {
     // Конструкторы
     public Contact() {}
 
-    public Contact(String id, String contactName, int importanceContact, String lastContactDate) {
-        this.id = id;
+    public Contact(String contactName, int importanceContact, String lastContactDate) {
         this.contactName = contactName;
         this.importanceContact = importanceContact;
         this.lastContactDate = lastContactDate;
