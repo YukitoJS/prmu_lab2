@@ -105,6 +105,15 @@ public class ContactAdapter extends RecyclerView.Adapter<ContactAdapter.ViewHold
             }
         }
     }
+    public void removeItem(String itemId) {
+        for (int i = 0; i < contacts.size(); i++) {
+            if (contacts.get(i).getId().equals(itemId)) {
+                contacts.remove(i);
+                notifyItemRemoved(i);
+                break;
+            }
+        }
+    }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView textViewContactName, textViewImportance, textViewDate;
